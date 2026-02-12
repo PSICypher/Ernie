@@ -109,6 +109,7 @@ export function TripDashboard({
         {tab === 'map' && (
           <RouteMap
             days={days}
+            planVersionId={plan?.id}
             height="72vh"
             showMissingDays
           />

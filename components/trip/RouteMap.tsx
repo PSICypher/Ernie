@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { ItineraryDay } from '@/lib/types';
 import { parseLatLng } from '@/lib/geo';
 import { formatDate } from '@/lib/format';
@@ -38,18 +39,23 @@ function coerceActivities(raw: unknown): string[] {
 
 export function RouteMap({
   days,
+  planVersionId,
   height = 360,
   showMissingDays = false
 }: {
   days: ItineraryDay[];
+  planVersionId?: string | null;
   height?: number | string;
   showMissingDays?: boolean;
 }) {
+  const router = useRouter();
   const mapEl = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<any>(null);
   const layerRef = useRef<any>(null);
   const [leafletReady, setLeafletReady] = useState(false);
   const [leafletError, setLeafletError] = useState<string | null>(null);
+  const [filling, setFilling] = useState(false);
+  const [fillStatus, setFillStatus] = useState<string | null>(null);
 
   const points = useMemo<RoutePoint[]>(() => {
     const sorted = [...(days || [])].sort((a, b) => (a.day_number || 0) - (b.day_number || 0));
@@ -219,6 +225,31 @@ export function RouteMap({
 
   const summary = `${points.length}/${days.length} days have coordinates`;
 
+  async function autofill() {
+    if (!planVersionId) return;
+    if (filling) return;
+    setFilling(true);
+    setFillStatus(null);
+    setLeafletError(null);
+    try {
+      const res = await fetch('/api/itinerary-days/geocode-missing', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ plan_version_id: planVersionId })
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(body?.error || 'Failed to auto-fill coordinates');
+      }
+      setFillStatus(`Updated ${body.updatedCount || 0} day(s)`);
+      router.refresh();
+    } catch (e) {
+      setLeafletError(e instanceof Error ? e.message : 'Failed to auto-fill coordinates');
+    } finally {
+      setFilling(false);
+    }
+  }
+
   return (
     <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-soft">
       <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
@@ -226,7 +257,19 @@ export function RouteMap({
           <h2 className="text-lg font-semibold text-gray-900">Route Map</h2>
           <p className="text-sm text-gray-600">Where you are each day, in order.</p>
         </div>
-        <p className="text-xs text-gray-500">{summary}</p>
+        <div className="flex items-center gap-3">
+          <p className="text-xs text-gray-500">{summary}</p>
+          {showMissingDays && missing.length > 0 && planVersionId ? (
+            <button
+              type="button"
+              onClick={autofill}
+              disabled={filling}
+              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs hover:bg-gray-50 disabled:opacity-60"
+            >
+              {filling ? 'Auto-filling…' : 'Auto-fill coordinates'}
+            </button>
+          ) : null}
+        </div>
       </div>
 
       {leafletError ? (
@@ -245,11 +288,14 @@ export function RouteMap({
         </p>
       )}
 
+      {fillStatus && <p className="mt-3 text-sm text-green-700">{fillStatus}</p>}
+
       {showMissingDays && missing.length > 0 && (
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
           <p className="text-sm font-medium text-amber-900">Missing map coordinates</p>
           <p className="mt-1 text-sm text-amber-800">
-            These days will not render on the map until we add `location_coordinates`.
+            These days will not render on the map until we add `location_coordinates`. The auto-fill button
+            will handle known cruise stops (CocoCay, Falmouth, Nassau) and interpolate Sea Days.
           </p>
           <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-2">
             {missing.map((d) => (
