@@ -1,3 +1,5 @@
+@import 'leaflet/dist/leaflet.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,4 +10,29 @@
 
 body {
   @apply bg-gray-50 text-gray-900 overflow-x-hidden;
+}
+
+/* Leaflet tweaks for our custom route markers */
+.route-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  background: #9333ea;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.route-marker.is-start {
+  background: #16a34a;
+}
+
+.route-marker.is-end {
+  background: #2563eb;
 }

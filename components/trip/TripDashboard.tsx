@@ -18,6 +18,7 @@ import { PlanVersionTabs } from '@/components/trip/PlanVersionTabs';
 import { DayCardGrid } from '@/components/trip/DayCardGrid';
 import { BookingChecklist } from '@/components/trip/BookingChecklist';
 import { DayEditSheet } from '@/components/trip/DayEditSheet';
+import { RouteMap } from '@/components/trip/RouteMap';
 import { currencySymbol } from '@/lib/format';
 
 interface TripDashboardProps {
@@ -94,13 +95,16 @@ export function TripDashboard({
         </div>
 
         {tab === 'overview' && (
-          <DayCardGrid
-            days={days}
-            accommodations={accommodations}
-            costs={costs}
-            currency={plan?.currency}
-            onChangeDay={(day) => setEditingDay(day)}
-          />
+          <div className="space-y-6">
+            <RouteMap days={days} />
+            <DayCardGrid
+              days={days}
+              accommodations={accommodations}
+              costs={costs}
+              currency={plan?.currency}
+              onChangeDay={(day) => setEditingDay(day)}
+            />
+          </div>
         )}
 
         {tab === 'checklist' && plan && (
