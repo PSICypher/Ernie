@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@/lib/supabase-server';
+import { createRouteHandlerClient, createAdminSupabaseClient } from '@/lib/supabase-server';
 
 const ALLOWED_EMAILS = ['schalk.vdmerwe@gmail.com', 'vdmkelz@gmail.com'];
 
@@ -32,6 +32,7 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   const supabase = createRouteHandlerClient();
+  const admin = createAdminSupabaseClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {
@@ -65,11 +66,24 @@ export async function POST(
     return NextResponse.json({ error: 'Share already exists' }, { status: 409 });
   }
 
+  // Link the invite to a concrete user_id when possible so RLS can resolve shares.
+  let sharedWithUserId: string | null = null;
+  try {
+    const { data, error } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    if (!error && data?.users) {
+      const match = data.users.find((u) => (u.email || '').toLowerCase() === email);
+      sharedWithUserId = match?.id || null;
+    }
+  } catch {
+    // ignore
+  }
+
   const { data, error } = await supabase
     .from('trip_shares')
     .insert({
       trip_id: params.id,
       shared_with_email: email,
+      shared_with_user_id: sharedWithUserId,
       permission
     })
     .select()

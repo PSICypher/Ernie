@@ -53,6 +53,35 @@ export async function POST() {
     return NextResponse.json({ error: tripError.message }, { status: 500 });
   }
 
+  // Make the imported trip visible to other allowlisted users out of the box.
+  // RLS resolves shares via shared_with_user_id, so we attempt to link by email.
+  const ownerEmail = (user.email || '').toLowerCase();
+  const shareEmails = ALLOWED_EMAILS.map((e) => e.toLowerCase()).filter((e) => e && e !== ownerEmail);
+  if (shareEmails.length > 0) {
+    let emailToUserId = new Map<string, string>();
+    try {
+      const { data, error } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      if (!error && data?.users) {
+        for (const u of data.users) {
+          const e = (u.email || '').toLowerCase();
+          if (e) emailToUserId.set(e, u.id);
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    await admin.from('trip_shares').upsert(
+      shareEmails.map((email) => ({
+        trip_id: newTripId,
+        shared_with_email: email,
+        shared_with_user_id: emailToUserId.get(email) || null,
+        permission: 'edit'
+      })),
+      { onConflict: 'trip_id,shared_with_email', ignoreDuplicates: true }
+    );
+  }
+
   for (const pv of seedData.planVersions) {
     const newPvId = newUUID();
     idMap.planVersion[pv.id] = newPvId;

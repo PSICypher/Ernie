@@ -24,9 +24,12 @@ export function TripHeader({ trip, plan }: TripHeaderProps) {
         </div>
         <div className="flex w-full flex-wrap items-center justify-end gap-2 md:w-auto md:gap-3">
           <PushToggle />
-          <button className="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50">
+          <Link
+            href={`/trips/${trip.id}/share`}
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50"
+          >
             Share
-          </button>
+          </Link>
           <button className="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50">
             Export
           </button>
