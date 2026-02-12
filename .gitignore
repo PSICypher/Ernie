@@ -1,0 +1,16 @@
+node_modules
+.next
+out
+.env
+.env.local
+.env.*.local
+.vercel
+.DS_Store
+.env*.local
+
+# next-pwa build artifacts (generated during `next build`)
+public/sw.js
+public/workbox-*.js
+public/fallback-*.js
+
+*.tsbuildinfo

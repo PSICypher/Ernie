@@ -38,7 +38,7 @@
 ┌───────────────────────────┐  ┌───────────────────────────────────┐
 │      SUPABASE             │  │        EXTERNAL APIs              │
 │  ┌─────────────────────┐  │  │  ┌────────────────────────────┐  │
-│  │ PostgreSQL Database │  │  │  │ Anthropic Claude API       │  │
+│  │ PostgreSQL Database │  │  │  │ OpenAI API              │  │
 │  │ + Row Level Security│  │  │  │ (AI research, generation)  │  │
 │  └─────────────────────┘  │  │  └────────────────────────────┘  │
 │  ┌─────────────────────┐  │  │  ┌────────────────────────────┐  │
@@ -81,7 +81,7 @@
 
 | Service | Model | Purpose |
 |---------|-------|---------|
-| Anthropic | claude-sonnet-4-20250514 | Research, plan generation, comparison |
+| OpenAI | gpt-5 | Research, plan generation, comparison |
 
 ### External APIs
 
@@ -128,7 +128,7 @@ NEXT_PUBLIC_VAPID_PUBLIC_KEY=BM...  # Required for push notifications
 
 # Server-side only (NEVER expose to client)
 SUPABASE_SERVICE_ROLE_KEY=eyJ...  # Bypasses RLS - KEEP SECRET
-ANTHROPIC_API_KEY=sk-ant-api03-...  # AI API key - KEEP SECRET
+OPENAI_API_KEY=sk-...  # AI API key - KEEP SECRET
 VAPID_PRIVATE_KEY=...              # Push notification signing - KEEP SECRET
 VAPID_SUBJECT=mailto:admin@example.com  # Contact for push service
 
@@ -139,7 +139,7 @@ SENTRY_DSN=
 
 **Required for Full Functionality:**
 - Supabase keys: Core database/auth
-- Anthropic key: AI features
+- OpenAI key: AI features
 - VAPID keys: Push notifications (can be omitted if push not needed)
 
 ### Vercel Project Settings
@@ -184,7 +184,7 @@ SENTRY_DSN=
 2. Server checks AI cache for existing result
 3. If cached and valid → return cached
 4. Otherwise:
-   - Call Anthropic API with structured prompt
+   - Call OpenAI API with structured prompt
    - Parse response into suggestions
    - Cache result in ai_research_cache
    - Return to client
@@ -288,7 +288,7 @@ export async function GET(request: Request) {
 
 - Supabase free tier: 500MB database, 1GB storage
 - Vercel free tier: 100GB bandwidth/month
-- Anthropic: Per-token billing
+- OpenAI: Per-token billing
 
 ### Scaling Path
 

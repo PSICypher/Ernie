@@ -14,7 +14,7 @@ This specification provides everything needed to rebuild the Holiday Planner App
 | `03_API_SPECIFICATION.md` | All API endpoints, methods, payloads, responses |
 | `04_COMPONENTS.md` | React component hierarchy, props, state management |
 | `05_AUTHENTICATION.md` | Auth flows, RLS policies, security model |
-| `06_AI_INTEGRATION.md` | Anthropic Claude integration, prompts, caching |
+| `06_AI_INTEGRATION.md` | OpenAI integration, prompts, caching |
 | `07_UI_UX_DESIGN.md` | Design system, responsive patterns, accessibility |
 | `08_PWA_FEATURES.md` | Service worker, push notifications, offline support |
 | `09_DATA_FLOWS.md` | How data moves through the system, sync logic |
@@ -44,7 +44,7 @@ This specification provides everything needed to rebuild the Holiday Planner App
 **Tech Stack:**
 - Frontend: Next.js 14.1.0, React 18, TypeScript, Tailwind CSS
 - Backend: Supabase (PostgreSQL + Auth + Storage)
-- AI: Anthropic Claude (claude-sonnet-4-20250514)
+- AI: OpenAI (gpt-5)
 - Maps: Leaflet
 - Charts: Recharts
 - Deployment: Vercel
@@ -169,7 +169,7 @@ This specification provides everything needed to rebuild the Holiday Planner App
 /lib
   /supabase.ts             # Browser client + type exports
   /supabase-server.ts      # Server clients (4 types)
-  /anthropic.ts            # AI functions (8 functions)
+  /openai.ts               # AI functions (8 functions)
   /push-utils.ts           # Push notification utilities
   /database.types.ts       # Generated Supabase types
 /public

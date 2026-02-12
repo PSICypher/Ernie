@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Holiday Planner App integrates with Anthropic's Claude API to provide:
+The Holiday Planner App integrates with the OpenAI API to provide:
 
 - Travel research assistance
 - Trip plan generation
@@ -16,14 +16,14 @@ The Holiday Planner App integrates with Anthropic's Claude API to provide:
 
 ## Configuration
 
-**Model:** `claude-sonnet-4-20250514`
+**Model:** `gpt-5`
 
 **Environment Variable:**
 ```bash
-ANTHROPIC_API_KEY=sk-ant-api03-...  # Server-side only
+OPENAI_API_KEY=sk-...  # Server-side only
 ```
 
-**SDK:** `@anthropic-ai/sdk` v0.14.0
+**SDK:** `openai`
 
 ---
 
@@ -480,16 +480,18 @@ function parseStructuredSuggestions(text: string): Suggestion[] {
 
 ```typescript
 try {
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 2000,
-    messages: [{ role: 'user', content: prompt }],
-    system: systemPrompt,
+  const response = await openai.responses.create({
+    model: 'gpt-5',
+    max_output_tokens: 2000,
+    input: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: prompt }
+    ]
   });
 
-  return response.content[0].text;
+  return response.output_text;
 } catch (error) {
-  console.error('Claude API error:', error);
+  console.error('OpenAI API error:', error);
   throw new Error('AI research failed');
 }
 ```

@@ -28,7 +28,7 @@ Build a family trip planning web application with the following features:
 
 - **Frontend:** Next.js 14.1.0 (App Router), React 18, TypeScript, Tailwind CSS
 - **Backend:** Supabase (PostgreSQL + Auth + Storage)
-- **AI:** Anthropic Claude (claude-sonnet-4-20250514)
+- **AI:** OpenAI (gpt-5)
 - **Maps:** Leaflet with OpenStreetMap
 - **Charts:** Recharts
 - **Deployment:** Vercel
@@ -402,7 +402,7 @@ CREATE POLICY "trips_delete" ON trips FOR DELETE USING (auth.uid() = user_id);
 
 ## AI Integration
 
-Use Anthropic Claude (claude-sonnet-4-20250514) for:
+Use OpenAI (gpt-5) for:
 - Trip plan generation
 - Research (hotels, activities, restaurants)
 - Plan comparison
@@ -450,7 +450,7 @@ Cache AI responses in ai_research_cache table with appropriate expiry times.
 /lib
   /supabase.ts
   /supabase-server.ts
-  /anthropic.ts
+  /openai.ts
   /push-utils.ts
   /database.types.ts
 /public
@@ -481,7 +481,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...  # Public anon key
 
 # Required - Server secrets (NEVER expose to client)
 SUPABASE_SERVICE_ROLE_KEY=eyJ...  # Bypasses RLS
-ANTHROPIC_API_KEY=sk-ant-api03-...  # Claude API
+OPENAI_API_KEY=sk-...  # OpenAI API
 
 # Required for push notifications
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=BM...  # Generate with: npx web-push generate-vapid-keys
@@ -519,7 +519,7 @@ Before deploying, verify:
 
 ## Usage
 
-Copy the entire prompt above and paste it into a new Claude conversation when you need to rebuild the application. The AI assistant will have complete context about:
+Copy the entire prompt above and paste it into a new ChatGPT conversation when you need to rebuild the application. The AI assistant will have complete context about:
 
 1. All features and requirements
 2. Database schema
