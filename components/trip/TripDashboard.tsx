@@ -33,7 +33,7 @@ interface TripDashboardProps {
   checklist: ChecklistItem[];
 }
 
-const TABS = ['overview', 'checklist', 'research', 'documents', 'packing', 'insights'] as const;
+const TABS = ['overview', 'map', 'checklist', 'research', 'documents', 'packing', 'insights'] as const;
 
 export function TripDashboard({
   trip,
@@ -89,14 +89,13 @@ export function TripDashboard({
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              {item.charAt(0).toUpperCase() + item.slice(1)}
+              {item === 'map' ? 'Map' : item.charAt(0).toUpperCase() + item.slice(1)}
             </button>
           ))}
         </div>
 
         {tab === 'overview' && (
           <div className="space-y-6">
-            <RouteMap days={days} />
             <DayCardGrid
               days={days}
               accommodations={accommodations}
@@ -105,6 +104,14 @@ export function TripDashboard({
               onChangeDay={(day) => setEditingDay(day)}
             />
           </div>
+        )}
+
+        {tab === 'map' && (
+          <RouteMap
+            days={days}
+            height="72vh"
+            showMissingDays
+          />
         )}
 
         {tab === 'checklist' && plan && (
