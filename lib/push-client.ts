@@ -20,14 +20,38 @@ async function getRegistrationOrThrow(timeoutMs = 8000) {
 
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-  let reg = await navigator.serviceWorker.getRegistration();
-  if (!reg) {
-    // next-pwa should auto-register, but on some mobile builds it can be delayed.
-    // Register explicitly as a fallback.
+  // Pick the registration that controls the root scope if possible.
+  let reg =
+    (await navigator.serviceWorker.getRegistration('/')) ||
+    (await navigator.serviceWorker.getRegistration()) ||
+    null;
+
+  // Some browsers can end up with a "zombie" registration that has no active,
+  // waiting, or installing worker (e.g., failed install). Unregister it so we
+  // can recover by re-registering.
+  if (reg && !reg.active && !reg.waiting && !reg.installing) {
     try {
-      reg = await navigator.serviceWorker.register('/sw.js');
+      await reg.unregister();
     } catch {
-      // ignore and fall through for better error message
+      // ignore
+    }
+    reg = null;
+  }
+
+  // next-pwa should auto-register, but on some mobile builds it can be delayed.
+  // Register explicitly as a fallback.
+  if (!reg) {
+    // Surface real network issues early.
+    const swRes = await fetch('/sw.js', { cache: 'no-store' }).catch(() => null);
+    if (!swRes || !swRes.ok) {
+      throw new Error('Service worker script /sw.js could not be loaded.');
+    }
+
+    try {
+      reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Service worker registration failed.';
+      throw new Error(msg);
     }
   }
 
@@ -47,6 +71,20 @@ async function getRegistrationOrThrow(timeoutMs = 8000) {
   // than navigator.serviceWorker.ready (which can hang until controlled).
   const start = Date.now();
   while (!reg.active || reg.active.state !== 'activated') {
+    // Recovery path: if the registration has no workers, re-register.
+    if (!reg.active && !reg.waiting && !reg.installing) {
+      try {
+        await reg.unregister();
+      } catch {
+        // ignore
+      }
+      try {
+        reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+      } catch {
+        // ignore, we'll time out with a helpful message below
+      }
+    }
+
     if (Date.now() - start > timeoutMs) {
       const installing = reg.installing?.state || null;
       const waiting = reg.waiting?.state || null;
@@ -56,7 +94,7 @@ async function getRegistrationOrThrow(timeoutMs = 8000) {
       );
     }
     await sleep(250);
-    reg = (await navigator.serviceWorker.getRegistration()) || reg;
+    reg = (await navigator.serviceWorker.getRegistration('/')) || (await navigator.serviceWorker.getRegistration()) || reg;
   }
 
   // Some Android Chrome builds still throw "no active Service Worker" if the SW
